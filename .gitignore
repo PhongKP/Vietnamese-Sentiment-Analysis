@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+sentiment.db
+
+# Model artifacts (temporary training files)
+logs/
+phobert-sentiment-finetuned/
+phobert-sentiment-final/
+*.pkl
+*.joblib
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Streamlit
+.streamlit/
+
+# PyTorch
+*.pth
+*.pt
+
+# Transformers cache
+.cache/
+huggingface_hub/
+
+# Training outputs
+wandb/
+tensorboard_logs/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
