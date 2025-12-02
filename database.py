@@ -7,7 +7,6 @@ def _conn():
     return sqlite3.connect(DB)
 
 def init_db():
-    """Khởi tạo database"""
     conn = sqlite3.connect('sentiment_history.db')
     cursor = conn.cursor()
     
@@ -24,7 +23,6 @@ def init_db():
     conn.close()
 
 def insert_record(text, sentiment):
-    """Thêm bản ghi mới"""
     conn = sqlite3.connect('sentiment_history.db')
     cursor = conn.cursor()
     
@@ -37,7 +35,6 @@ def insert_record(text, sentiment):
     conn.close()
 
 def get_latest(limit=50, offset=0):
-    """Lấy các bản ghi mới nhất với phân trang"""
     conn = sqlite3.connect('sentiment_history.db')
     cursor = conn.cursor()
     
@@ -54,7 +51,6 @@ def get_latest(limit=50, offset=0):
     return rows
 
 def get_total_count():
-    """Đếm tổng số bản ghi"""
     conn = sqlite3.connect('sentiment_history.db')
     cursor = conn.cursor()
     

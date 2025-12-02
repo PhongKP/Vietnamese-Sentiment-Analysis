@@ -57,7 +57,6 @@ class SentimentService:
             raise e
 
     def preprocess_text(self, text):
-        """Tiền xử lý văn bản"""
         if not text or not isinstance(text, str):
             return ""
 

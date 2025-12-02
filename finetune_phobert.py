@@ -15,7 +15,6 @@ import re
 import warnings
 warnings.filterwarnings('ignore')
 
-# Kiểm tra GPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"🖥️ Using device: {device}")
 
@@ -49,7 +48,6 @@ class SentimentDataset(Dataset):
         }
 
 def load_abbreviations(path="abbreviation.csv"):
-    """Load abbreviations"""
     mapping = {}
     try:
         import csv
@@ -61,15 +59,14 @@ def load_abbreviations(path="abbreviation.csv"):
                 if k and v:
                     mapping[k] = v
     except:
-        print("⚠️ abbreviation.csv not found, using basic preprocessing")
+        print("abbreviation.csv not found, using basic preprocessing")
     return mapping
 
 def preprocess_text(text):
-    """Tiền xử lý văn bản"""
     if pd.isna(text):
         return ""
     
-    text = str(text).strip()
+    text = str(text).strip().lower()
     
     # Load abbreviations
     abbr_dict = load_abbreviations()
@@ -79,82 +76,64 @@ def preprocess_text(text):
         pattern = r'\b' + re.escape(abbr) + r'\b'
         text = re.sub(pattern, full, text)
     
-    # Loại bỏ ký tự đặc biệt thừa
+    # Loại bỏ ký tự đặc biệt bị thừa
     text = re.sub(r'[^\w\s\u00C0-\u1EF9.,!?]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
     
     return text
 
 def load_and_prepare_data():
-    """Load và chuẩn bị dữ liệu từ sentiment_data.csv"""
-    print("🔄 Loading data from sentiment_data.csv...")
-    
     try:
         df = pd.read_csv('sentiment_data.csv')
         print(f"✅ Loaded {len(df)} samples from sentiment_data.csv")
     except Exception as e:
         print(f"❌ Error loading sentiment_data.csv: {e}")
         return None, None, None, None
-    
-    # Kiểm tra cột
-    if 'text' not in df.columns or 'label' not in df.columns:
-        print("❌ File must have 'text' and 'label' columns")
-        return None, None, None, None
-    
+        
     # Loại bỏ dữ liệu null
     df = df.dropna(subset=['text', 'label'])
     
-    # Chuẩn hóa label
+    # chuẩn hóa label về in hoa
     df['label'] = df['label'].str.strip().str.upper()
     
-    # Chỉ giữ lại 3 label chính
     valid_labels = ['POSITIVE', 'NEGATIVE', 'NEUTRAL']
     df = df[df['label'].isin(valid_labels)]
     
-    # Map labels to numbers
+    # Mapping
     label_map = {'NEGATIVE': 0, 'NEUTRAL': 1, 'POSITIVE': 2}
     df['label_id'] = df['label'].map(label_map)
     
     print(f"📊 Label distribution:")
     print(df['label'].value_counts())
     
-    # Tiền xử lý text
     print("🔄 Preprocessing texts...")
     df['processed_text'] = df['text'].apply(preprocess_text)
     
     # Loại bỏ text rỗng
     df = df[df['processed_text'].str.len() > 3]
     
-    # Giảm dataset size cho CPU training
+    # Giảm dataset size
     if device.type == 'cpu' and len(df) > 4000:
-        print(f"⚠️ Large dataset ({len(df)}) + CPU: sampling 4000 for training")
         df = df.sample(n=4000, random_state=42).reset_index(drop=True)
     
     print(f"✅ Final dataset size: {len(df)} samples")
     
-    # Chia train/val: 80/20
+    # chia dataset thành 2 tập train/val với tỉ lệ: 80/20
     train_df, val_df = train_test_split(
         df, test_size=0.2, random_state=42, stratify=df['label']
     )
-    
-    print(f"📊 Data split:")
     print(f"   Train: {len(train_df)} samples")
     print(f"   Val: {len(val_df)} samples")
     
     return train_df, val_df, label_map
 
 def compute_metrics(eval_pred):
-    """Compute metrics"""
     predictions, labels = eval_pred
     predictions = np.argmax(predictions, axis=1)
     accuracy = accuracy_score(labels, predictions)
     return {'accuracy': accuracy}
 
-def finetune_phobert():
-    """Fine-tune PhoBERT cho sentiment analysis"""
-    
-    print("🚀 Starting PhoBERT fine-tuning...")
-    
+def finetune_phobert():    
     # Load dữ liệu
     train_df, val_df, label_map = load_and_prepare_data()
     if train_df is None:
@@ -162,15 +141,12 @@ def finetune_phobert():
     
     # Load PhoBERT tokenizer và model
     model_name = "vinai/phobert-base"
-    print(f"🔧 Loading {model_name}...")
-    
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
         num_labels=3
     )
     
-    # Create datasets
     print("🔧 Creating datasets...")
     train_dataset = SentimentDataset(
         train_df['processed_text'], 
@@ -239,7 +215,7 @@ def finetune_phobert():
     
     print("✅ Fine-tuning completed!")
     
-    # Quick test
+    # Test thử model sau khi train
     print("\n🧪 Quick test:")
     model.eval()
     id_to_label = {0: 'NEGATIVE', 1: 'NEUTRAL', 2: 'POSITIVE'}

@@ -16,7 +16,6 @@ def _service():
     return svc
 
 def get_paginated_history(page=1, per_page=5):
-    """Lấy lịch sử với phân trang"""
     offset = (page - 1) * per_page
     total_count = get_total_count()
     total_pages = math.ceil(total_count / per_page) if total_count > 0 else 1
@@ -62,7 +61,7 @@ def main():
                             elif res["sentiment"] == "NEGATIVE":
                                 st.error(f"Kết quả: **Tiêu cực**")
                             else:
-                                st.info(f"Kết quả: **Trung lập**")
+                                st.info(f"Kết quả: **Trung tính**")
                             
                             # Hiển thị văn bản đã được xử lý
                             if res["text"] != text.strip():
@@ -104,7 +103,7 @@ def main():
                 width='stretch'
             )
             
-            # Pagination controls - chỉ dùng icon
+            # Pagination
             col1, col2, col3, col4, col5 = st.columns([1, 1, 2, 1, 1])
             
             with col1:
